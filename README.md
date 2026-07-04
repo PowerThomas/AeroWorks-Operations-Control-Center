@@ -15,19 +15,19 @@ The project teaches three things at once:
 
 See [`plan.md`](plan.md) for the full project master roadmap.
 
-## Current status: Phase 1 — local app shell
+## Current status: Phase 2 — Code Apps local integration
 
-Everything runs **locally on mock data**: no tenant authentication, no Power Platform
-calls, and no deployment. The app is scaffolded from the official Microsoft
-[PowerAppsCodeApps `starter` template](https://github.com/microsoft/PowerAppsCodeApps)
-and keeps its Code Apps essentials (`@microsoft/power-apps` SDK,
-`@microsoft/power-apps-vite` plugin, Vite/port conventions) for later phases.
+The app still runs on **mock data only** (no Dataverse yet), but it is now registered
+against a Power Platform environment via the npm-based `power-apps` CLI: initialized
+with `power-apps init`, verified locally inside the Power Apps host (SDK handshake via
+the `@microsoft/power-apps-vite` plugin's Local Play link), and published with an initial
+`power-apps push`. Environment/app identifiers live in `power.config.json`.
 
 | Phase | Scope |
 |---|---|
 | 0 | Planning and GitHub guardrails ✅ |
-| 1 | Local React/TypeScript app shell on mock data ✅ (this phase) |
-| 2 | Code Apps local integration (init, run in Power Apps host, first push) |
+| 1 | Local React/TypeScript app shell on mock data ✅ |
+| 2 | Code Apps local integration (init, run in Power Apps host, first push) ✅ (this phase) |
 | 3 | Dataverse integration (`aw_*` tables, generated services behind repositories) |
 | 4 | Platform integrations (SharePoint evidence, Power Automate approvals, Teams/Outlook, Copilot Studio) |
 | 5 | ALM, governance, observability |
@@ -50,9 +50,12 @@ npm run dev       # local dev server
 | `npm run test` | Vitest single run (used in CI) |
 | `npm run test:watch` | Vitest watch mode |
 | `npm run preview` | Preview production build |
+| `npx power-apps init` | Register the app against a Power Platform environment (Phase 2, run once) |
+| `npx power-apps push` | Build and publish the current `dist/` to the registered app |
 
 CI (`.github/workflows/ci.yml`) runs lint, typecheck, test, and build on every PR and
-push to `main`.
+push to `main`. Publishing to Power Platform is a manual, deliberate step run by the
+project owner (see [`plan.md`](plan.md) Phase 2) — it is not part of CI.
 
 ## Architecture
 
