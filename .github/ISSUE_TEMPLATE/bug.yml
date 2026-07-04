@@ -1,0 +1,63 @@
+name: Bug report
+description: Report something that is broken or behaving unexpectedly
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please provide enough detail to reproduce it.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened, and what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Dashboard
+        - Assets
+        - Inspections
+        - Incidents
+        - Work orders
+        - AI triage
+        - Admin
+        - Shared / layout / routing
+        - Build / CI / tooling
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, Node version, local dev vs. deployed app.
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Logs, screenshots, related issues.
+    validations:
+      required: false

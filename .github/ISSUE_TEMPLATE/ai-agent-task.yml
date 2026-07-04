@@ -1,0 +1,62 @@
+name: AI agent task
+description: A well-scoped task intended to be assigned to GitHub Copilot (coding agent)
+title: "[Agent]: "
+labels: ["ai-agent"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for tasks that will be assigned to an AI coding agent.
+        Agent tasks must be **small, self-contained, and verifiable**. The agent will
+        follow `.github/copilot-instructions.md` and the files under `.github/instructions/`.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One or two sentences describing the outcome. Reference plan.md sections where relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope
+      description: Files/areas the agent is expected to create or change.
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: Explicitly list what the agent must NOT touch (e.g., generated code, unrelated features, Power Platform commands in Phases 0–1).
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Verifiable outcomes, including which checks must pass (lint, typecheck, test, build).
+      placeholder: |
+        - [ ] ...
+        - [ ] CI passes (lint, typecheck, test, build)
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Roadmap phase
+      options:
+        - "Phase 0 — Planning and guardrails"
+        - "Phase 1 — Local app shell"
+        - "Phase 2 — Code Apps local integration"
+        - "Phase 3 — Dataverse integration"
+        - "Phase 4 — Platform integrations"
+        - "Phase 5 — ALM, governance, observability"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and references
+      description: Links to plan.md sections, related issues/PRs, docs the agent should read first.
+    validations:
+      required: false
