@@ -1,0 +1,56 @@
+name: Feature request
+description: Propose a new feature or enhancement for the AeroWorks Operations Control Center
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a feature. Keep it small and focused — one feature per issue.
+        Check `plan.md` first: the feature should fit the roadmap phase it targets.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / user need
+      description: What problem does this solve? Which persona benefits (Operations Manager, Field Technician, Safety Coordinator, IT/Admin, AI Assistant User)?
+      placeholder: As a Field Technician, I need ... so that ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should be built? Describe behavior, not implementation details.
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Roadmap phase
+      description: Which plan.md phase does this belong to?
+      options:
+        - "Phase 0 — Planning and guardrails"
+        - "Phase 1 — Local app shell"
+        - "Phase 2 — Code Apps local integration"
+        - "Phase 3 — Dataverse integration"
+        - "Phase 4 — Platform integrations"
+        - "Phase 5 — ALM, governance, observability"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Bullet list of verifiable outcomes.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Links, screenshots, related issues, constraints.
+    validations:
+      required: false

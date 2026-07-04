@@ -1,0 +1,9 @@
+# CODEOWNERS — reviews required from the owners below before merge.
+# Later entries take precedence over earlier ones.
+
+# Default owner for everything in the repository.
+* @PowerThomas
+
+# Guardrails, instructions, and CI must always be reviewed by the repo owner.
+/.github/ @PowerThomas
+/plan.md @PowerThomas
