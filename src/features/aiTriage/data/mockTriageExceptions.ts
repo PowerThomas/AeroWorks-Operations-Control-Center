@@ -1,0 +1,51 @@
+import type { TriageException } from "../domain/triageException"
+
+/** Typed in-memory mock dataset, shaped toward the future `aw_exceptionrequest` table. */
+export const mockTriageExceptions: TriageException[] = [
+  {
+    id: "exc-001",
+    title: "Keep Jet Bridge A2 in service during bearing replacement lead time",
+    justification: "Replacement bearing arrives in 5 days; gate closure would cancel 14 daily rotations.",
+    riskLevel: "High",
+    status: "Pending",
+    assetId: "asset-002",
+    assetName: "Jet Bridge A2",
+    incidentId: "inc-001",
+    requestedBy: "T. Berg",
+    neededByDate: "2026-07-06",
+  },
+  {
+    id: "exc-002",
+    title: "Run Baggage Carousel 3 at reduced speed pending fault diagnosis",
+    justification: "No alternative carousel capacity during morning peak.",
+    riskLevel: "Critical",
+    status: "Pending",
+    assetId: "asset-003",
+    assetName: "Baggage Carousel 3",
+    incidentId: "inc-002",
+    requestedBy: "J. Park",
+    neededByDate: "2026-07-05",
+  },
+  {
+    id: "exc-003",
+    title: "Defer HVAC T1-North filter verification to next window",
+    justification: "Maintenance window conflicts with terminal deep clean.",
+    riskLevel: "Low",
+    status: "Pending",
+    assetId: "asset-004",
+    assetName: "HVAC Unit T1-North",
+    requestedBy: "M. Laurent",
+    neededByDate: "2026-08-01",
+  },
+  {
+    id: "exc-004",
+    title: "Operate De-icing Rig D-3 past lubrication interval",
+    justification: "Early cold snap forecast before scheduled service.",
+    riskLevel: "Medium",
+    status: "Approved",
+    assetId: "asset-006",
+    assetName: "De-icing Rig D-3",
+    requestedBy: "S. Ibrahim",
+    neededByDate: "2026-06-15",
+  },
+]
