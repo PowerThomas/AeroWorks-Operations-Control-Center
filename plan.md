@@ -168,14 +168,20 @@ Explicitly **out of scope** for Phase 1: `power-apps init`, `power-apps push`, `
 `pac code init`, `pac code add-data-source`, connector setup, environment selection,
 Dataverse connection setup, and any deployment command.
 
-### Phase 2 — Code Apps local integration (run/reviewed deliberately by the owner)
+### Phase 2 — Code Apps local integration (run/reviewed deliberately by the owner) ✅
 
-- **CLI decision checkpoint** (see Tooling direction): confirm the current split between
-  the npm-based `power-apps` CLI and `pac code` against live Microsoft docs.
-- Tenant authentication and environment selection.
-- App init/registration against the chosen environment.
-- Local run inside the Power Apps host (SDK handshake verified) — still on mock data.
-- First push/publish of the mock-backed shell and smoke test.
+- **CLI decision checkpoint** (see Tooling direction): the npm-based `power-apps` CLI
+  (`@microsoft/power-apps` / `npx power-apps`) covered init/run/push end-to-end for this
+  app; `pac code` was not required.
+- Tenant authentication and environment selection: done by the owner interactively via
+  `power-apps init`.
+- App init/registration: `npx power-apps init -n 'AeroWorks Operations Control Center'
+  -e <environmentId>` created `power.config.json` (committed — contains only
+  `environmentId`/`appId`, no secrets).
+- Local run inside the Power Apps host (SDK handshake verified): `npm run dev` +
+  the Vite plugin's Local Play link — still on mock data.
+- First push/publish: `npx power-apps push` — mock-backed shell smoke-tested successfully
+  in the hosted Power Apps player.
 
 ### Phase 3 — Dataverse integration
 

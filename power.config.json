@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "appId": "9330a40a-0268-4c1e-93ad-a9fb294025e1",
+  "appDisplayName": "AeroWorks Operations Control Center",
+  "region": "prod",
+  "appType": "CodeApp",
+  "environmentId": "7b8bc323-54db-e06b-9e67-6306f75c631a",
+  "description": " ",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "localAppUrl": "http://localhost:3000",
+  "logoPath": "Default",
+  "connectionReferences": {},
+  "databaseReferences": {}
+}
