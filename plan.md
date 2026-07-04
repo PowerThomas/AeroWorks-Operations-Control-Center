@@ -1,4 +1,4 @@
-# AeroWorks Operations Control Center — Implementation Plan
+# AeroWorks Operations Control Center — Project Master Roadmap
 
 ## Purpose
 
@@ -10,6 +10,35 @@ A Power Apps Code App learning project that teaches three things at once:
    repository pattern, testable domain logic, TanStack Query).
 3. **Power Apps Code Apps capabilities and conventions** (official templates, the
    Power Apps Code Apps SDK/CLI, generated data sources, and Power Platform ALM).
+
+This document is the **project master roadmap** — it covers the full lifecycle from
+planning through ALM/governance, not only the first implementation phase.
+
+## Business scenario
+
+**AeroWorks** is a fictitious airport/facilities operator. Its operations teams manage:
+
+- **Operational assets** — jet bridges, baggage systems, HVAC units, ground support
+  equipment, and similar infrastructure spread across operational zones.
+- **Inspections** — scheduled and ad-hoc checks against assets, with due dates,
+  outcomes, and follow-ups.
+- **Incidents** — reported faults, safety events, and disruptions tied to assets/zones.
+- **Work orders** — corrective and preventive maintenance work, prioritized and assigned
+  to technicians.
+- **High-risk exceptions** — situations that need explicit review/approval before
+  operations continue (e.g., operating an asset with an overdue safety inspection).
+- **Evidence files** — photos, reports, and documents attached to inspections,
+  incidents, and exception requests.
+
+### Personas
+
+| Persona | What they need from the app |
+|---|---|
+| **Operations Manager** | Dashboard overview, KPIs, exception approvals, workload distribution |
+| **Field Technician** | Assigned work orders, inspection checklists, evidence upload, quick incident reporting |
+| **Safety Coordinator** | Incident review, high-risk exception oversight, audit notes, compliance trail |
+| **IT/Admin** | App settings, reference data, access/governance, environment health |
+| **AI Assistant User** | Any of the above interacting via the AI triage assistant (natural-language triage, summaries, suggested prioritization) |
 
 ## Repository state
 
@@ -44,53 +73,132 @@ npm-based Power Apps Code Apps CLI direction for init/run/push where supported: 
 an npm project whose lifecycle (dev server, build, publish) runs through npm scripts and the
 Code Apps SDK/CLI tooling that ships with `@microsoft/power-apps`.
 
-PAC (`pac`) commands are referenced **only** where current Microsoft docs still require or
-document them, notably:
-- `pac auth` for tenant authentication (Phase 2 only)
-- `pac code init --environment <id> --displayName <name>` where docs still document it for
-  environment binding (Phase 2 only)
-- `pac code add-data-source` for generating typed models/services from connectors and
-  Dataverse tables (Phase 2 only)
+**Phase 2 starts with a CLI decision checkpoint.** Prefer the current npm-based
+`power-apps` CLI for init/run/push where supported. Use `pac code` only where the current
+Microsoft docs or selected template still require it, especially for data-source
+generation and connection-reference operations. `pac auth` remains the documented path for
+tenant authentication unless the npm CLI has absorbed it by then.
 
 Before Phase 2 begins, re-check the official docs (aka.ms/pacodeapps) — the npm-based CLI
-is actively absorbing PAC responsibilities, and any command still listed above may have an
-npm-based equivalent by then.
+is actively absorbing PAC responsibilities.
 
-## Phasing
+## Proposed future Dataverse data model
 
-### Phase 1 — Local-only app shell (this project's first implementation phase)
+Phase 1 uses **mocks only** — no Dataverse connection exists until Phase 3. However, mock
+domain types must be intentionally shaped toward this future model so the later swap is a
+data-layer change, not a domain rewrite.
+
+| Table (logical name) | Purpose | Key relationships |
+|---|---|---|
+| `aw_asset` | Operational assets (jet bridges, HVAC, GSE, …): name, type, status, health, criticality | → `aw_operationalzone` |
+| `aw_operationalzone` | Physical/logical zones (terminals, aprons, plant rooms) | parent of assets |
+| `aw_inspection` | Scheduled/ad-hoc inspections: due date, outcome, inspector, checklist result | → `aw_asset` |
+| `aw_incident` | Faults, safety events, disruptions: severity, status, reporter | → `aw_asset`, `aw_operationalzone` |
+| `aw_workorder` | Corrective/preventive work: priority, assignee, due date, linked source record | → `aw_asset`, `aw_incident`, `aw_inspection` |
+| `aw_exceptionrequest` | High-risk exception requests requiring review/approval; drives the AI triage feature | → `aw_asset`, `aw_incident` |
+| `aw_auditnote` | Append-only audit/compliance notes attached to any operational record | polymorphic-style lookup(s) |
+| `aw_setting` | App configuration and reference data managed by IT/Admin | standalone |
+
+Evidence files are stored in **SharePoint** (Phase 4), linked from inspections, incidents,
+and exception requests — not as Dataverse file columns, to exercise the SharePoint
+connector capability.
+
+## Code Apps feature coverage matrix
+
+| Capability | Phase | Notes |
+|---|---|---|
+| Official `starter` template | 1 | Scaffold basis |
+| npm CLI init/run/push | 2 | After the CLI decision checkpoint |
+| Dataverse CRUD | 3 | Via generated services behind repositories |
+| Generated services under `src/generated` | 3 | Never hand-edited; wrapped by adapters |
+| Dataverse actions/functions | 3 | E.g., exception approval state transitions |
+| SharePoint evidence storage | 4 | Evidence files for inspections/incidents/exceptions |
+| Power Automate approval flow | 4 | Exception request approvals |
+| Teams/Outlook notifications | 4 | Work order assignment + approval outcomes |
+| Copilot Studio triage assistant | 4 | Backs the AI Triage feature |
+| Azure SQL (only if justified) | 4 | Only for historical telemetry/trends if Dataverse is a poor fit; requires explicit justification before adoption |
+| App Insights | 5 | Wire `shared/telemetry` abstraction to real telemetry |
+| CSP | 5 | Content Security Policy configuration + verification |
+| iframe embedding test | 5 | Validate hosting behavior (e.g., Teams/portal embedding) |
+| ALM | 5 | Solutions, source-controlled deployment, environments |
+| Connection references | 5 | Solution-aware connector bindings |
+| Environment variables | 5 | Config per environment (URLs, feature flags) |
+
+## Roadmap
+
+### Phase 0 — Planning and guardrails
+
+- This plan (master roadmap) reviewed and merged.
+- GitHub workflow guardrails in place before code lands:
+  - `.github/pull_request_template.md`
+  - `.github/ISSUE_TEMPLATE/feature.yml`
+  - `.github/ISSUE_TEMPLATE/bug.yml`
+  - `.github/ISSUE_TEMPLATE/ai-agent-task.yml`
+  - `.github/CODEOWNERS`
+- Copilot instruction files:
+  - `.github/copilot-instructions.md` — repo-wide architecture rules (feature folders,
+    repository pattern, no direct imports from `src/generated`, testing expectations)
+  - `.github/instructions/react.instructions.md` — React/TypeScript conventions
+  - `.github/instructions/power-platform.instructions.md` — Code Apps/Dataverse conventions
+  - `.github/instructions/testing.instructions.md` — testing strategy and expectations
+- Branch protection + CI-required-before-merge policy documented.
+
+### Phase 1 — Local React/TypeScript app shell
 
 Everything in Phase 1 runs locally with **no tenant authentication and no Power Platform
 calls**. Deliverables:
 
 - React app shell from the official starter template
-- Routing (React Router)
-- Mock data behind repository interfaces (see architecture below)
+- Routing (React Router) incl. not-found route
+- Mock data behind repository interfaces (see architecture below), typed toward the
+  future Dataverse model
+- Shared UI state components (see below); every feature page demonstrates loading, empty,
+  error, and populated states where applicable
 - Domain logic + unit tests (Vitest)
 - CI (GitHub Actions: lint, typecheck, test, build)
-- Project instructions (`.github/copilot-instructions.md`) and contributor documentation
 - Updated root `README.md`
 
-Explicitly **out of scope** for Phase 1 (and for the task that implements it):
-`power-apps init`, `power-apps push`, `pac auth`, `pac code init`,
-`pac code add-data-source`, connector setup, environment selection, Dataverse connection
-setup, and any deployment command.
+Explicitly **out of scope** for Phase 1: `power-apps init`, `power-apps push`, `pac auth`,
+`pac code init`, `pac code add-data-source`, connector setup, environment selection,
+Dataverse connection setup, and any deployment command.
 
-### Phase 2 — Power Platform integration (deferred; run/reviewed deliberately by the owner)
+### Phase 2 — Code Apps local integration (run/reviewed deliberately by the owner)
 
-- Tenant authentication (`pac auth` or current npm-based equivalent)
-- Environment selection and app registration/init
-- Dataverse tables + connector setup
-- Generate typed models/services into `src/generated` (`pac code add-data-source` or
-  current documented equivalent)
-- Swap mock repositories for generated-service-backed repositories (behind the same
-  interfaces — no UI/hook changes expected)
-- First push/publish to the Power Apps environment and smoke test
+- **CLI decision checkpoint** (see Tooling direction): confirm the current split between
+  the npm-based `power-apps` CLI and `pac code` against live Microsoft docs.
+- Tenant authentication and environment selection.
+- App init/registration against the chosen environment.
+- Local run inside the Power Apps host (SDK handshake verified) — still on mock data.
+- First push/publish of the mock-backed shell and smoke test.
 
-### Phase 3 — Hardening and learning extensions
+### Phase 3 — Dataverse integration
 
-- AI triage logic against real data, telemetry wiring, role-based admin behavior,
-  E2E tests (Playwright), release/ALM notes.
+- Create the `aw_*` tables (see data model) in a dev environment, solution-aware.
+- Generate typed models/services into `src/generated` (data-source generation via
+  `pac code` where docs still require it).
+- Implement Dataverse-backed repository adapters (`DataverseAssetRepository`, …) behind the
+  existing interfaces — no UI/hook changes expected.
+- Dataverse actions/functions for multi-step operations (e.g., exception state transitions).
+- Seed/reference data strategy and `aw_setting`-driven configuration.
+
+### Phase 4 — Platform integrations
+
+- SharePoint evidence storage (upload/list/link evidence from inspections, incidents,
+  exception requests).
+- Power Automate approval flow for `aw_exceptionrequest`.
+- Teams/Outlook notifications (work order assignments, approval outcomes).
+- Copilot Studio triage assistant backing the AI Triage feature.
+- Azure SQL **only if justified** for historical telemetry/trend analysis — adoption
+  requires a written justification of why Dataverse is insufficient.
+
+### Phase 5 — ALM, governance, observability
+
+- Solution packaging, connection references, environment variables.
+- Source-controlled deployments across dev/test/prod; pipeline notes.
+- App Insights wired to the `shared/telemetry` abstraction.
+- CSP configuration and verification; iframe embedding test.
+- Role-based admin behavior hardening; audit note coverage review.
+- E2E tests (Playwright) against a deployed environment.
 
 ## Architecture
 
@@ -140,7 +248,7 @@ src/
   generated/
     README.md               # placeholder + rules for generated Code Apps output
   shared/
-    components/             # generic UI building blocks
+    components/             # LoadingState, ErrorState, EmptyState + generic building blocks
     utils/                  # generic helpers (dates, formatting)
     telemetry/              # logging/telemetry abstraction (console-backed in Phase 1)
     types/                  # cross-feature shared types
@@ -151,6 +259,16 @@ Each feature contains:
 - **data/** — a repository *interface* plus a *mock repository implementation*
 - **hooks/** — TanStack Query hooks consuming the repository
 - **ui/** — components and pages
+
+### Shared UI state components (Phase 1)
+
+- `shared/components/LoadingState.tsx`
+- `shared/components/ErrorState.tsx`
+- `shared/components/EmptyState.tsx`
+- `features/notFound/ui/NotFoundPage.tsx`
+
+Every feature page should demonstrate **loading, empty, error, and populated** states
+where applicable, using these shared components for consistency.
 
 ### Generated services (`src/generated`)
 
@@ -174,8 +292,8 @@ export interface AssetRepository {
 - Phase 1 provides `MockAssetRepository` (and equivalents per feature): async, promise-based
   implementations backed by typed in-memory mock datasets, intentionally shaped to match the
   call patterns of Dataverse/generated services (async list/get/create/update, id-based
-  lookups, paging-friendly signatures where relevant).
-- Phase 2 provides `DataverseAssetRepository` adapters wrapping the generated services in
+  lookups, paging-friendly signatures where relevant) and typed toward the `aw_*` model.
+- Phase 3 provides `DataverseAssetRepository` adapters wrapping the generated services in
   `src/generated` behind the same interfaces.
 - Hooks and UI depend only on the interface (provided via a simple factory or React
   context), so swapping mock → Dataverse requires no changes above the data layer.
@@ -199,29 +317,63 @@ React Router routes: `/` (Dashboard), `/assets`, `/inspections`, `/incidents`,
 - Strict TypeScript (`"strict": true`, `noUnusedLocals`, `noUnusedParameters`,
   `noImplicitReturns`); keep/extend the template's ESLint flat config.
 
+### Package scripts
+
+`package.json` must expose:
+
+| Script | Purpose |
+|---|---|
+| `dev` | Local dev server |
+| `build` | Production build |
+| `typecheck` | `tsc --noEmit` (or `tsc -b`) as a **separate script** — must run in CI |
+| `lint` | ESLint |
+| `test` | Vitest single run |
+| `test:watch` | Vitest watch mode |
+| `preview` | Preview production build |
+
 ### Tests
 
 - Vitest + Testing Library (`@testing-library/react`, `@testing-library/jest-dom`, `jsdom`)
   added as dev dependencies (the starter template does not include a test runner).
-- Unit tests for domain logic (e.g., `computeAssetHealthStatus`, `isInspectionOverdue`,
-  `prioritizeTriageExceptions`) and for mock repositories; at least one component test per
-  page shell.
-- `npm run test` script; tests run in CI.
+- Prioritize tests for **real domain logic** (e.g., `computeAssetHealthStatus`,
+  `isInspectionOverdue`, `prioritizeTriageExceptions`) and **repository behavior**. Add
+  component tests only for routing/layout/state behavior that can fail meaningfully, such
+  as loading, empty, error, populated, and not-found states.
+- `npm run test` runs in CI; `npm run test:watch` for local development.
 
 ### CI (GitHub Actions)
 
-- `ci.yml` on PRs and pushes to `main`: install, lint, typecheck (`tsc -b`), test, build.
-- No Power Platform credentials in CI during Phase 1.
+- `ci.yml` on PRs and pushes to `main`: install, `lint`, `typecheck`, `test`, `build` —
+  each as its own step, with `typecheck` running as a separate script.
+- No Power Platform credentials in CI during Phases 0–1.
 
 ### GH-600-style workflow & project instructions
 
-- `.github/copilot-instructions.md` documenting architecture rules (feature folders, repository
-  pattern, no direct imports from `src/generated`, testing expectations) so AI-assisted
-  changes stay on-convention.
+- Copilot instruction files (created in Phase 0, refined as the project grows):
+  - `.github/copilot-instructions.md`
+  - `.github/instructions/react.instructions.md`
+  - `.github/instructions/power-platform.instructions.md`
+  - `.github/instructions/testing.instructions.md`
+- GitHub workflow guardrails:
+  - `.github/pull_request_template.md`
+  - `.github/ISSUE_TEMPLATE/feature.yml`, `.github/ISSUE_TEMPLATE/bug.yml`,
+    `.github/ISSUE_TEMPLATE/ai-agent-task.yml`
+  - `.github/CODEOWNERS`
 - Work tracked via issues; small focused PRs; CI required before merge.
 
-## Phase 1 files to create
+## Phase 0–1 files to create
 
+Phase 0 (guardrails):
+- `.github/pull_request_template.md`
+- `.github/ISSUE_TEMPLATE/feature.yml`, `.github/ISSUE_TEMPLATE/bug.yml`,
+  `.github/ISSUE_TEMPLATE/ai-agent-task.yml`
+- `.github/CODEOWNERS`
+- `.github/copilot-instructions.md`
+- `.github/instructions/react.instructions.md`,
+  `.github/instructions/power-platform.instructions.md`,
+  `.github/instructions/testing.instructions.md`
+
+Phase 1 (app shell):
 - Template-provided (from starter): `package.json`, `vite.config.ts`, `index.html`,
   `tsconfig*.json`, `eslint.config.js`, `power.config.json`/SDK wiring as shipped,
   `src/main.tsx`, base styles
@@ -232,10 +384,12 @@ React Router routes: `/` (Dashboard), `/assets`, `/inspections`, `/incidents`,
   mock implementation + mock dataset, `hooks/` query hooks, `ui/` page
 - `src/features/admin/ui/AdminPage.tsx`, `src/features/dashboard/{domain,hooks,ui}/…`,
   `src/features/notFound/ui/NotFoundPage.tsx`
+- `src/shared/components/LoadingState.tsx`, `src/shared/components/ErrorState.tsx`,
+  `src/shared/components/EmptyState.tsx`
 - `src/generated/README.md`
-- `src/shared/{components,utils,telemetry,types}/` starters
+- `src/shared/{utils,telemetry,types}/` starters
 - `vitest.config.ts` (or merged into `vite.config.ts`)
-- `.github/workflows/ci.yml`, `.github/copilot-instructions.md`
+- `.github/workflows/ci.yml`
 - `.env.example` placeholder (no real values)
 - Updated root `README.md` (overview, structure, run instructions, phase roadmap)
 
