@@ -12,6 +12,10 @@ high-risk exception triage). `plan.md` at the repository root is the **master ro
   Power Platform credentials in CI.
 - Dataverse integration starts in Phase 3; other connectors (SharePoint, Power Automate,
   Teams/Outlook, Copilot Studio) start in Phase 4; ALM/governance in Phase 5.
+- **Always use the official Microsoft Power Platform agent skills**
+  ([microsoft/power-platform-skills](https://github.com/microsoft/power-platform-skills))
+  for Power Platform work — particularly the **`code-apps-preview`** plugin. See
+  `.github/instructions/power-platform.instructions.md` for details.
 
 ## Architecture rules (mandatory)
 

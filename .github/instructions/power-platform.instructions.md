@@ -4,6 +4,21 @@ applyTo: "**"
 
 # Power Apps Code Apps / Dataverse conventions
 
+## Power Platform skills (mandatory)
+
+- **Always use the official Microsoft Power Platform agent skills**
+  ([microsoft/power-platform-skills](https://github.com/microsoft/power-platform-skills))
+  when working on Power Platform tasks — **particularly the `code-apps-preview` plugin**
+  (`plugins/code-apps`), which covers building and deploying Power Apps code apps.
+- Install via the plugin marketplace in a Claude Code / GitHub Copilot CLI session:
+  `/plugin marketplace add microsoft/power-platform-skills`, then
+  `/plugin install code-apps-preview@power-platform-skills`.
+- Prefer the guidance from these skills over ad-hoc approaches for scaffolding,
+  connector/data-source generation, and push/publish workflows; when the skills and this
+  document disagree, re-check current Microsoft docs and update this document.
+- Phase boundaries below still apply: in Phases 0–1 the skills inform planning only — do
+  not run any Power Platform commands they suggest.
+
 ## Scaffold and tooling
 
 - The app is scaffolded from the official Microsoft PowerAppsCodeApps **`starter`**
