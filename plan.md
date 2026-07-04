@@ -76,8 +76,13 @@ Code Apps SDK/CLI tooling that ships with `@microsoft/power-apps`.
 **Phase 2 starts with a CLI decision checkpoint.** Prefer the current npm-based
 `power-apps` CLI for init/run/push where supported. Use `pac code` only where the current
 Microsoft docs or selected template still require it, especially for data-source
-generation and connection-reference operations. `pac auth` remains the documented path for
-tenant authentication unless the npm CLI has absorbed it by then.
+generation and connection-reference operations.
+
+For authentication, prefer the npm-based Power Apps CLI flow (`power-apps login`,
+`power-apps auth-status`, `power-apps auth-switch`, and the automatic sign-in during
+`power-apps init`) where supported. Use `pac auth` only when the current command path
+still depends on PAC CLI, such as specific `pac code` or solution-management operations
+documented by Microsoft.
 
 Before Phase 2 begins, re-check the official docs (aka.ms/pacodeapps) — the npm-based CLI
 is actively absorbing PAC responsibilities.
@@ -110,7 +115,7 @@ connector capability.
 | Official `starter` template | 1 | Scaffold basis |
 | npm CLI init/run/push | 2 | After the CLI decision checkpoint |
 | Dataverse CRUD | 3 | Via generated services behind repositories |
-| Generated services under `src/generated` | 3 | Never hand-edited; wrapped by adapters |
+| Generated services (`src/generated` + generator-specific paths) | 3 | Never hand-edited; wrapped by adapters |
 | Dataverse actions/functions | 3 | E.g., exception approval state transitions |
 | SharePoint evidence storage | 4 | Evidence files for inspections/incidents/exceptions |
 | Power Automate approval flow | 4 | Exception request approvals |
@@ -120,8 +125,8 @@ connector capability.
 | App Insights | 5 | Wire `shared/telemetry` abstraction to real telemetry |
 | CSP | 5 | Content Security Policy configuration + verification |
 | iframe embedding test | 5 | Validate hosting behavior (e.g., Teams/portal embedding) |
-| ALM | 5 | Solutions, source-controlled deployment, environments |
-| Connection references | 5 | Solution-aware connector bindings |
+| ALM | 5 | Solution-aware deployment, preferred solution, Power Platform Pipelines |
+| Connection references | 4 → 5 | Introduced with the first non-Dataverse connector in Phase 4; validated/hardened across environments in Phase 5 |
 | Environment variables | 5 | Config per environment (URLs, feature flags) |
 
 ## Roadmap
@@ -137,7 +142,8 @@ connector capability.
   - `.github/CODEOWNERS`
 - Copilot instruction files:
   - `.github/copilot-instructions.md` — repo-wide architecture rules (feature folders,
-    repository pattern, no direct imports from `src/generated`, testing expectations)
+    repository pattern, no direct imports from `src/generated` or other generated
+    output paths, testing expectations)
   - `.github/instructions/react.instructions.md` — React/TypeScript conventions
   - `.github/instructions/power-platform.instructions.md` — Code Apps/Dataverse conventions
   - `.github/instructions/testing.instructions.md` — testing strategy and expectations
@@ -174,8 +180,9 @@ Dataverse connection setup, and any deployment command.
 ### Phase 3 — Dataverse integration
 
 - Create the `aw_*` tables (see data model) in a dev environment, solution-aware.
-- Generate typed models/services into `src/generated` (data-source generation via
-  `pac code` where docs still require it).
+- Generate typed models/services (data-source generation via `pac code` where docs still
+  require it) into the CLI's output paths — usually `src/generated` for Dataverse (see
+  Generated code section).
 - Implement Dataverse-backed repository adapters (`DataverseAssetRepository`, …) behind the
   existing interfaces — no UI/hook changes expected.
 - Dataverse actions/functions for multi-step operations (e.g., exception state transitions).
@@ -185,6 +192,8 @@ Dataverse connection setup, and any deployment command.
 
 - SharePoint evidence storage (upload/list/link evidence from inspections, incidents,
   exception requests).
+- **Connection references introduced here**: the first non-Dataverse connector integration
+  brings the first connection references; each subsequent connector adds its own.
 - Power Automate approval flow for `aw_exceptionrequest`.
 - Teams/Outlook notifications (work order assignments, approval outcomes).
 - Copilot Studio triage assistant backing the AI Triage feature.
@@ -193,8 +202,13 @@ Dataverse connection setup, and any deployment command.
 
 ### Phase 5 — ALM, governance, observability
 
-- Solution packaging, connection references, environment variables.
-- Source-controlled deployments across dev/test/prod; pipeline notes.
+- Solution-aware deployment: preferred solution usage, environment variables, and
+  validating/hardening the connection references introduced in Phase 4 across
+  dev/test/prod.
+- Power Platform Pipelines for environment promotion. **GitHub remains the source of
+  truth for the React/TypeScript source code.** Do not assume Solution Packager or Power
+  Platform source-code-integration support for Code Apps unless Microsoft documentation
+  changes.
 - App Insights wired to the `shared/telemetry` abstraction.
 - CSP configuration and verification; iframe embedding test.
 - Role-based admin behavior hardening; audit note coverage review.
@@ -270,12 +284,24 @@ Each feature contains:
 Every feature page should demonstrate **loading, empty, error, and populated** states
 where applicable, using these shared components for consistency.
 
-### Generated services (`src/generated`)
+### Generated code (Code Apps CLI output)
 
-- Generated Power Apps Code Apps models/services belong under `src/generated`.
+Generated output lives **wherever the current Microsoft Code Apps CLI generates it**.
+Known generated areas:
+
+- **Dataverse table/API generation** — usually under `src/generated/...`
+- **Power Automate flow generation** — currently under `src/services`, `src/models`, and
+  `schemas/logicflows`
+- **Other connectors** — may have generator-specific output paths
+
+Rules (applying to all generated output regardless of path):
+
 - Generated files must **not** be manually edited — they are overwritten on regeneration.
 - Handwritten feature code must never import generated services directly; it wraps them
   behind the repository/adapter interfaces in each feature's `data/` folder.
+- If a generated output path falls outside `src/generated`, document it as generated
+  (e.g., in its own README or the root README) and treat it with the same
+  no-manual-edit rule.
 - Phase 1 ships only `src/generated/README.md` documenting these rules.
 
 ### Repository pattern
